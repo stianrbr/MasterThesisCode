@@ -1,3 +1,9 @@
 /DownloadMetocean/NORA3_Wave/
 /DownloadMetocean/NORA3_Wind/
 /DownloadMetocean/NORA10_WAM10/
+*.h5
+/FitDistributions/Troll_1981_2021_complete.h5
+/FitDistributions/Troll_1981_2021_selected.h5
+/FitDistributions/Troll_1981_2021_selected_corr_tp.h5
+/FitDistributions/tp_correction.png
+*.png
