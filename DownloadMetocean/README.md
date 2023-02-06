@@ -12,4 +12,7 @@ The project is written as a part of a Master Thesis in Marine Hydrodynamics.
 
 * main.py: Main file of project, which is the one that must be run to download the data. The option for parallel downloads are included, where the number of parallels are specified in inputs.py.
 
-* combine_yearly_data.py: Separate scripts for gathering the yearly data downloaded by main.py. Takes all the files in the savefolder specified by inputs.py, and gathers them in a separate file
+* combine_yearly_data.py: Separate script for gathering the yearly data downloaded by main.py. Takes all the files in the savefolder specified by inputs.py, and gathers them in a separate file
+
+* mix_wind_wave_dataset.py: Separate script for extracting wind data from NORA3 and wave data from NORA3 - Windsurfer, and combine to a new dataset.
+
