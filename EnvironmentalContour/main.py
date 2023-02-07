@@ -59,6 +59,8 @@ if plot_surf:
         ax.set_zlabel("u1")
         ax.plot_wireframe(x, y, z, color="g", alpha=0.3)
         ax.set_box_aspect((1, 1, 1))
+        plt.title(f"Environmental contour - U-space\nReturn period={return_period} y")
+        plt.tight_layout()
         if save_surf:
             plt.savefig(savefolder + f"u_surf_{return_period}y.png")
         if show_surf:
@@ -74,6 +76,8 @@ if plot_surf:
     ax.set_zlabel(r"$U_w$ [m/s]")
     ax.plot_wireframe(hs, tp, uw, color="g", alpha=0.3)
     ax.set_box_aspect((1,1,1))
+    plt.title(f"Environmental contour\nReturn period={return_period} y")
+    plt.tight_layout()
     if save_surf:
         plt.savefig(savefolder+f"contour_surf_{return_period}y.png")
     if show_surf:
@@ -116,7 +120,7 @@ plot_multiple_line = True
 save_multiple_line = True
 show_multiple_line = False
 
-windspeeds = np.arange(10, 35, step=2)
+windspeeds = np.arange(4, 36, step=2)
 return_periods = [10000, 100, 50, 5, 1]
 seastate_dur = 1
 if plot_multiple_line:
