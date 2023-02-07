@@ -135,6 +135,22 @@ def joint_contour_surface(return_period, seastate_dur, alpha_wind, beta_wind, a,
     tp = transform_u3(u3, uw, hs, i, j, k, l)
     return hs, tp, uw
 
+def u_space_surface(return_period, seastate_dur):
+    """
+    Create a sphere in u-space for a given return period
+    :param return_period: (float) Return period for exceedance probability
+    :param seastate_dur: (float) Duration of considered sea states
+    """
+    q = 1 / return_period
+    n = 24 / seastate_dur * 365
+
+    beta = -1 * norm.ppf(q / n)
+    n_grid, m_grid = np.mgrid[0:2 * np.pi:500j, 0:np.pi / 2:500j]
+    z = beta * np.cos(m_grid)
+    x = beta*np.cos(n_grid)*np.sin(m_grid)
+    y = beta*np.sin(n_grid)*np.sin(m_grid)
+    return x, y, z
+
 def contour_line_for_windspeed(windspeed, return_period, seastate_dur, alpha_wind, beta_wind, a, b, i, j, k, l):
     """
     Create a contour line for a given wind speed, return period and transform it to physical space
