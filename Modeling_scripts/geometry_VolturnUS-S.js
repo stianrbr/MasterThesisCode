@@ -1210,3 +1210,76 @@ GenieRules.Meshing.superElementType = 5;
 
 Meshing_panels.execute();
 ExportMeshFem().DoExport("T5.FEM");
+
+/*
+Create Morison model
+ */
+
+Column1 = PipeSection(d2, t1);
+
+Column2 = PipeSection(d1, t1);
+
+Pontoon = BoxSection(h_pontoon, w_pontoon, t1, t1, t1);
+
+Column1.setDefault();
+
+Point86 = Point48.copyTranslate(Vector3d(0 m,0 m,6 m));
+Point87 = Point48.copyTranslate(Vector3d(0 m,0 m,35 m));
+Bm1 = StraightBeam(Point48, Point86);
+Bm2 = StraightBeam(Point86, Point61);
+Bm3 = StraightBeam(Point61, Point77);
+Bm4 = StraightBeam(Point77, Point87);
+MyModelTransformerMap = ObjectNameMap();
+MyModelTransformerMap.Add(Bm1, "Bm5");
+MyModelTransformerMap.Add(Bm2, "Bm6");
+MyModelTransformerMap.Add(Bm3, "Bm7");
+MyModelTransformerMap.Add(Bm4, "Bm8");
+ModelTransformer(MyModelTransformerMap).copyRotate(Point(0 m,0 m,-20 m), Vector3d(0, 0, 1), 120, 2);
+Point88 = Point0.copyTranslate(Vector3d(0 m,0 m,6 m));
+Point89 = Point0.copyTranslate(Vector3d(0 m,0 m,35 m));
+Column2.setDefault();
+Bm13 = StraightBeam(Point0, Point88);
+Bm14 = StraightBeam(Point88, Point13);
+Bm15 = StraightBeam(Point13, Point29);
+Bm16 = StraightBeam(Point29, Point89);
+Point90 = Point(-5 m,0 m,-20 m);
+Point91 = Point3.copyTranslate(Vector3d(0 m,0 m,3.5 m));
+Point92 = Point90.copyTranslate(Vector3d(0 m,0 m,3.5 m));
+Pontoon.setDefault();
+Bm17 = StraightBeam(Point91, Point92);
+MyModelTransformerMap = ObjectNameMap();
+MyModelTransformerMap.Add(Bm17, "Bm18");
+ModelTransformer(MyModelTransformerMap).copyRotate(Point(0 m,0 m,-20 m), Vector3d(0, 0, 1), 120, 2);
+Morison = Set();
+Morison.add(Bm1);
+Morison.add(Bm10);
+Morison.add(Bm11);
+Morison.add(Bm12);
+Morison.add(Bm13);
+Morison.add(Bm14);
+Morison.add(Bm15);
+Morison.add(Bm16);
+Morison.add(Bm17);
+Morison.add(Bm18);
+Morison.add(Bm19);
+Morison.add(Bm2);
+Morison.add(Bm3);
+Morison.add(Bm4);
+Morison.add(Bm5);
+Morison.add(Bm6);
+Morison.add(Bm7);
+Morison.add(Bm8);
+Morison.add(Bm9);
+
+Delete(Md_def);
+Delete(FS_density);
+Delete(Lid_density);
+
+GenieRules.Meshing.autoSimplifyTopology = false;
+GenieRules.Meshing.autoSplitPeriodicGeometry = false;
+GenieRules.Meshing.superElementType = 6;
+
+Meshing_panels.step(1).subset = Morison;
+Meshing_panels.step(1).excludeIncludeMeshSubsetOption = anIncludeMeshSubset;
+Meshing_panels.execute();
+ExportMeshFem().DoExport("T6.FEM");
