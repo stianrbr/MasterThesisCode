@@ -31,6 +31,7 @@ h_pontoon = 7.00 m;  // Vertical height of pontoon
 
 draft = 20.00 m; // Draft of floater in operating condition
 freeboard = 15.00 m; // Freeboard of floater in operating condition
+fairlead_depth = 14.00 m; // Fairlead_depth
 
 cc_distance = 51.75 m;  // Center-center distance radial to center column
 
@@ -1223,8 +1224,8 @@ Pontoon = BoxSection(h_pontoon, w_pontoon, t1, t1, t1);
 
 Column1.setDefault();
 
-Point86 = Point48.copyTranslate(Vector3d(0 m,0 m,6 m));
-Point87 = Point48.copyTranslate(Vector3d(0 m,0 m,35 m));
+Point86 = Point48.copyTranslate(Vector3d(0 m,0 m,draft-fairlead_depth));
+Point87 = Point48.copyTranslate(Vector3d(0 m,0 m,draft+freeboard));
 Bm1 = StraightBeam(Point48, Point86);
 Bm2 = StraightBeam(Point86, Point61);
 Bm3 = StraightBeam(Point61, Point77);
@@ -1235,16 +1236,16 @@ MyModelTransformerMap.Add(Bm2, "Bm6");
 MyModelTransformerMap.Add(Bm3, "Bm7");
 MyModelTransformerMap.Add(Bm4, "Bm8");
 ModelTransformer(MyModelTransformerMap).copyRotate(Point(0 m,0 m,-20 m), Vector3d(0, 0, 1), 120, 2);
-Point88 = Point0.copyTranslate(Vector3d(0 m,0 m,6 m));
-Point89 = Point0.copyTranslate(Vector3d(0 m,0 m,35 m));
+Point88 = Point0.copyTranslate(Vector3d(0 m,0 m,draft-fairlead_depth));
+Point89 = Point0.copyTranslate(Vector3d(0 m,0 m,draft+freeboard));
 Column2.setDefault();
 Bm13 = StraightBeam(Point0, Point88);
 Bm14 = StraightBeam(Point88, Point13);
 Bm15 = StraightBeam(Point13, Point29);
 Bm16 = StraightBeam(Point29, Point89);
 Point90 = Point(-5 m,0 m,-20 m);
-Point91 = Point3.copyTranslate(Vector3d(0 m,0 m,3.5 m));
-Point92 = Point90.copyTranslate(Vector3d(0 m,0 m,3.5 m));
+Point91 = Point3.copyTranslate(Vector3d(0 m,0 m,Pon_height/2));
+Point92 = Point90.copyTranslate(Vector3d(0 m,0 m,Pon_height/2));
 Pontoon.setDefault();
 Bm17 = StraightBeam(Point91, Point92);
 MyModelTransformerMap = ObjectNameMap();
