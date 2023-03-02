@@ -1,10 +1,18 @@
 // HydroD V6.1-02 started 2023-02-27 09:44:57
-
-
 FEM_path = "S:\\Master\\Linear convergence study\\Volturn\\Mesh_1m\\Geo_1m\\"
-Mass_type = "Including_full_ballast"
 
+Mass_type = "Including_full_ballast";  // "Including_full_ballast" / "Including_fixed_ballast" / "Excluding_ballast"
 
+Drag_type = "Critical";  // "Critical" / "Morison"
+
+mean_drift = false;  // "True" / "False"
+
+diff_freq = false;  // "True" / "False"
+
+tank_method = "Quasi-static";  // "Dynamic" / "Quasi-static"
+
+Hs = 10 m;
+Tp = 15 s;
 
 Directions1 = new Directions(Environment, "Directions1");
 DirectionSet1 = new DirectionSet(Directions1, "DirectionSet1");
@@ -43,6 +51,15 @@ Location1.WaterDepth = 300 m;
 FrequencyDomainCondition1 = new FrequencyDomainCondition(Location1, "FrequencyDomainCondition1");
 FrequencyDomainCondition1.DirectionSet = DirectionSet1;
 FrequencyDomainCondition1.FrequencySet = FrequencySet1;
+
+BretschneiderSpectrum1 = new BretschneiderSpectrum(Water1, "BretschneiderSpectrum1");
+BretschneiderSpectrum1.Hs = Hs;
+BretschneiderSpectrum1.Tp = Tp;
+
+SeaState1 = new SeaState(Location1, "SeaState1");
+SeaState1.Duration = 3600 s;
+SeaState1.SpectrumItems.Add(new SpectrumItem());
+SeaState1.SpectrumItems[0].Spectrum = BretschneiderSpectrum1;
 
 HydroModel1 = new HydroModel(HydroModels, "HydroModel1");
 HydroModel1.FPx = 1 m;
@@ -258,10 +275,12 @@ CompartmentContents1.Contents[10].FillingFraction = Fluid_ballast;
 
 
 AdditionalMatrices1 = new AdditionalMatrices(LoadingCondition1, "AdditionalMatrices1");
-CriticalDampingMatrix1 = new CriticalDampingMatrix(AdditionalMatrices1, "CriticalDampingMatrix1");
-CriticalDampingMatrix1.Heave = 0.05;
-CriticalDampingMatrix1.Roll = 0.05;
-CriticalDampingMatrix1.Pitch = 0.05;
+if (Drag_type == "Critical"){
+    CriticalDampingMatrix1 = new CriticalDampingMatrix(AdditionalMatrices1, "CriticalDampingMatrix1");
+    CriticalDampingMatrix1.Heave = 0.05;
+    CriticalDampingMatrix1.Roll = 0.05;
+    CriticalDampingMatrix1.Pitch = 0.05;
+}
 
 RestoringMatrix1 = new RestoringMatrix(AdditionalMatrices1, "RestoringMatrix1");
 RestoringMatrix1.RestoringMatrixTable[0,0] = 79300.7933 N/m;
@@ -335,8 +354,43 @@ WadamAnalysis1.RemoveIrregularFrequencies = true;
 WadamAnalysis1.EnvironmentCondition = FrequencyDomainCondition1;
 WadamAnalysis1.SaveWamitFiles = true;
 
-WadamAnalysis1.UseMorisonModel = false;
-WadamAnalysis1.CalculateDriftForces = false;
-WadamAnalysis1.DifferenceFrequencies = false;
+if (Drag_type == "Critical"){
+    WadamAnalysis1.UseMorisonModel = false;
+} else if (Drag_type == "Morison"){
+    WadamAnalysis1.UseMorisonModel = true;
+    WadamAnalysis1.SeaState = SeaState1;
+    WadamAnalysis1.DragMethod = DragMethod.Stochastic;
+    WadamAnalysis1.WaveType = WaveType.IncidentWave;
+}
+
+if (mean_drift){
+    WadamAnalysis1.CalculateDriftForces = true;
+    WadamAnalysis1.IncludeBiDirectionalWaves = true;
+    WadamAnalysis1.PressureIntegration = false;
+    WadamAnalysis1.FarFieldIntegration = true;
+}else{
+    WadamAnalysis1.CalculateDriftForces = false;
+}
+
+if (diff_freq){
+    WadamAnalysis1.DifferenceFrequencies = true;
+    WadamAnalysis1.CombiDiffType = CombinationDiffType.Selected;
+    WadamAnalysis1.MaxFreqDiff = 0.314159 rad/s;
+    WadamAnalysis1.MaxDirDiff = 0 deg;
+    if (Drag_type == "Morison") {
+        WadamAnalysis1.IncludeDampingFromMorisonModel = true;
+    }
+}else{
+    WadamAnalysis1.DifferenceFrequencies = false;
+}
+
+if (tank_method == "Dynamic"){
+    WadamAnalysis1.IncludeDynamicsOfInternalFluid = true;
+    WadamAnalysis1.RemoveIrregularFrequencies = false;
+} else if (tank_method == "Quasi-static"){
+    WadamAnalysis1.IncludeDynamicsOfInternalFluid = false;
+}
+
+
 WadamAnalysis1.IncludeLimitingFrequencies = true;
 WadamAnalysis1.IncludeForwardSpeed = false;
