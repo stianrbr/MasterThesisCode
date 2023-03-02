@@ -1,7 +1,7 @@
 // HydroD V6.1-02 started 2023-02-27 09:44:57
 
 
-FEM_path = "S:\\Master\\Linear convergence study\\Volturn\\Mesh_1m\\Geo_1m\\"
+FEM_path = "S:\\Master\\Linear convergence study\\INO\\Mesh_1_m\\Geo_1m\\"
 Mass_type = "Including_full_ballast"
 
 
@@ -71,17 +71,12 @@ PanelModel1.ShowHydroPressureArrows = true;
 
 Morison2DProperties = new Morison2DProperties(Properties, "Morison2DProperties");
 
-Col1 = new Morison2DProperty(Morison2DProperties, "Col1");
+Col1 = new Morison2DProperty(Morison2DProperties, "Col");
 Col1.Cdy = 1;
 Col1.Cdz = 1;
 Col1.Cay = 1;
 Col1.Caz = 1;
 
-Col2 = new Morison2DProperty(Morison2DProperties, "Col2");
-Col2.Cdy = 1;
-Col2.Cdz = 1;
-Col2.Cay = 1;
-Col2.Caz = 1;
 
 Pon = new Morison2DProperty(Morison2DProperties, "Pon");
 Pon.Cdy = 1;
@@ -107,29 +102,27 @@ LoadingCondition1.HeelAngle = 0 deg;
 MorisonModel1 = new MorisonModel(HydroModel1, "MorisonModel1");
 MorisonModel1.ElementModel = Morison;
 MorisonModel1.UpdateSections();
-MorisonModel1.Sections[0].Morison2DProperty = Col1;
+MorisonModel1.Sections[0].Morison2DProperty = Col;
 MorisonModel1.Sections[1].Morison2DProperty = Pon;
-MorisonModel1.Sections[2].Morison2DProperty = Col2;
 MorisonModel1.Sections[0].DragOnly = true;
 MorisonModel1.Sections[1].DragOnly = true;
-MorisonModel1.Sections[2].DragOnly = true;
 
 AnchorElement1 = new AnchorElement(MorisonModel1, "AnchorElement1");
 AnchorElement1.FairleadNode = 2;
 AnchorElement1.WindlassNode = 2;
 AnchorElement1.AnchorProperty = AnchorProperty1;
-AnchorElement1.XaxisAngle = 240 deg;
+AnchorElement1.XaxisAngle = 0 deg;
 
 AnchorElement2 = new AnchorElement(MorisonModel1, "AnchorElement2");
-AnchorElement2.FairleadNode = 14;
-AnchorElement2.WindlassNode = 14;
+AnchorElement2.FairleadNode = 9;
+AnchorElement2.WindlassNode = 9;
 AnchorElement2.AnchorProperty = AnchorProperty1;
-AnchorElement2.XaxisAngle = 0 deg;
+AnchorElement2.XaxisAngle = 120 deg;
 
 AnchorElement3 = new AnchorElement(MorisonModel1, "AnchorElement3");
-AnchorElement3.FairleadNode = 21;
-AnchorElement3.WindlassNode = 21;
-AnchorElement3.XaxisAngle = 120 deg;
+AnchorElement3.FairleadNode = 16;
+AnchorElement3.WindlassNode = 16;
+AnchorElement3.XaxisAngle = 240 deg;
 AnchorElement3.AnchorProperty = AnchorProperty1;
 
 StructureReductions1 = new StructureReductions(Properties, "StructureReductions1");
@@ -159,58 +152,58 @@ CompartmentModel1.FillingFractions[0].ToFraction = new Fraction(1);
 CompartmentModel1.FillingFractions[0].Step = new Fraction(0.1);
 CompartmentModel1.ElementModel = Compartment;
 CompartmentModel1.UpdateCompartments();
-CompartmentModel1.Compartments[41].Group = "P1";
-CompartmentModel1.Compartments[42].Group = "P1";
-CompartmentModel1.Compartments[43].Group = "P1";
-CompartmentModel1.Compartments[44].Group = "P1";
+CompartmentModel1.Compartments[3].Group = "P1";
+CompartmentModel1.Compartments[4].Group = "P1";
+CompartmentModel1.Compartments[33].Group = "P1";
+CompartmentModel1.Compartments[35].Group = "P1";
 
+CompartmentModel1.Compartments[1].Group = "P2";
 CompartmentModel1.Compartments[2].Group = "P2";
-CompartmentModel1.Compartments[7].Group = "P2";
-CompartmentModel1.Compartments[8].Group = "P2";
-CompartmentModel1.Compartments[11].Group = "P2";
+CompartmentModel1.Compartments[34].Group = "P2";
+CompartmentModel1.Compartments[36].Group = "P2";
 
-CompartmentModel1.Compartments[6].Group = "P3";
-CompartmentModel1.Compartments[9].Group = "P3";
-CompartmentModel1.Compartments[10].Group = "P3";
-CompartmentModel1.Compartments[15].Group = "P3";
+CompartmentModel1.Compartments[11].Group = "P3";
+CompartmentModel1.Compartments[8].Group = "P3";
+CompartmentModel1.Compartments[25].Group = "P3";
+CompartmentModel1.Compartments[23].Group = "P3";
 
-CompartmentModel1.Compartments[21].Group = "C";
-CompartmentModel1.Compartments[23].Group = "C";
-CompartmentModel1.Compartments[53].Group = "C";
+CompartmentModel1.Compartments[19].Group = "C";
+CompartmentModel1.Compartments[20].Group = "C";
+CompartmentModel1.Compartments[41].Group = "C";
 
 CompartmentModel1.UpdateCompartments();
 
 MassModel1 = new MassModel(HydroModel1, "MassModel1");
 if (Mass_type=="Including_full_ballast") {
-    MassModel1.UserSpecifiedMass = 20448.18 tonne;
+    MassModel1.UserSpecifiedMass = 13244.78 tonne;
     MassModel1.UserSpecifiedCenterOfGravityX = 0 m;
     MassModel1.UserSpecifiedCenterOfGravityY = 0 m;
-    MassModel1.UserSpecifiedCenterOfGravityZ = -2.0820 m;
-    MassModel1.UserSpecifiedRadiusOfGyrationX = 43.696 m;
-    MassModel1.UserSpecifiedRadiusOfGyrationY = 43.602 m;
-    MassModel1.UserSpecifiedRadiusOfGyrationZ = 25.777 m;
+    MassModel1.UserSpecifiedCenterOfGravityZ = 7.5579 m;
+    MassModel1.UserSpecifiedRadiusOfGyrationX = 55.507 m;
+    MassModel1.UserSpecifiedRadiusOfGyrationY = 55.510 m;
+    MassModel1.UserSpecifiedRadiusOfGyrationZ = 41.336 m;
     Fluid_ballast.Value = new Fraction(0);
     Fixed_ballast.Value = new Fraction(0);
 } else if (Mass_type=="Including_fixed_ballast") {
-    MassModel1.UserSpecifiedMass = 9224.29 tonne;
+    MassModel1.UserSpecifiedMass = 12458.98 tonne;
     MassModel1.UserSpecifiedCenterOfGravityX = 0 m;
     MassModel1.UserSpecifiedCenterOfGravityY = 0 m;
-    MassModel1.UserSpecifiedCenterOfGravityZ = 15.78 m;
-    MassModel1.UserSpecifiedRadiusOfGyrationX = 61.827 m;
-    MassModel1.UserSpecifiedRadiusOfGyrationY = 61.68 m;
-    MassModel1.UserSpecifiedRadiusOfGyrationZ = 38.379 m;
-    Fluid_ballast.Value = new Fraction(0.9261296);
+    MassModel1.UserSpecifiedCenterOfGravityZ = 9.28 m;
+    MassModel1.UserSpecifiedRadiusOfGyrationX = 59.971 m;
+    MassModel1.UserSpecifiedRadiusOfGyrationY = 62.295 m;
+    MassModel1.UserSpecifiedRadiusOfGyrationZ = 45.829 m;
+    Fluid_ballast.Value = new Fraction(0.44385);
     Fixed_ballast.Value = new Fraction(0);
 } else if (Mass_type=="Excluding_ballast") {
-    MassModel1.UserSpecifiedMass = 6684.29 tonne;
-    MassModel1.UserSpecifiedCenterOfGravityX = 0 m;
+    MassModel1.UserSpecifiedMass = 7097.64 tonne;
+    MassModel1.UserSpecifiedCenterOfGravityX = 16.86 m;
     MassModel1.UserSpecifiedCenterOfGravityY = 0 m;
-    MassModel1.UserSpecifiedCenterOfGravityZ = 28.86 m;
-    MassModel1.UserSpecifiedRadiusOfGyrationX = 62.521 m;
-    MassModel1.UserSpecifiedRadiusOfGyrationY = 68.676 m;
-    MassModel1.UserSpecifiedRadiusOfGyrationZ = 31.859 m;
-    Fluid_ballast.Value = new Fraction(0.9261296);
-    Fixed_ballast.Value = new Fraction(0.1591847);
+    MassModel1.UserSpecifiedCenterOfGravityZ = 28.56 m;
+    MassModel1.UserSpecifiedRadiusOfGyrationX = 60.596 m;
+    MassModel1.UserSpecifiedRadiusOfGyrationY = 72.6380 m;
+    MassModel1.UserSpecifiedRadiusOfGyrationZ = 41.070 m;
+    Fluid_ballast.Value = new Fraction(0.44385);
+    Fixed_ballast.Value = new Fraction(0.159153);
 }
 
 
@@ -220,41 +213,42 @@ SecondOrderFreeSurfaceModel1.ElementModel = Free_surface;
 CompartmentContents1 = new CompartmentContents(LoadingCondition1, "CompartmentContents1");
 CompartmentModel1.UpdateCompartments();
 
-CompartmentContents1.Contents[44].IntactFluid = Seawater;
-CompartmentContents1.Contents[42].IntactFluid = Seawater;
-CompartmentContents1.Contents[41].IntactFluid = Seawater;
-CompartmentContents1.Contents[43].IntactFluid = Seawater;
-CompartmentContents1.Contents[7].IntactFluid = Seawater;
-CompartmentContents1.Contents[8].IntactFluid = Seawater;
+CompartmentContents1.Contents[33].IntactFluid = Seawater;
+CompartmentContents1.Contents[4].IntactFluid = Seawater;
+CompartmentContents1.Contents[3].IntactFluid = Seawater;
+CompartmentContents1.Contents[35].IntactFluid = Seawater;
+CompartmentContents1.Contents[36].IntactFluid = Seawater;
+CompartmentContents1.Contents[34].IntactFluid = Seawater;
 CompartmentContents1.Contents[2].IntactFluid = Seawater;
+CompartmentContents1.Contents[1].IntactFluid = Seawater;
+CompartmentContents1.Contents[25].IntactFluid = Seawater;
 CompartmentContents1.Contents[11].IntactFluid = Seawater;
-CompartmentContents1.Contents[15].IntactFluid = Seawater;
-CompartmentContents1.Contents[6].IntactFluid = Seawater;
-CompartmentContents1.Contents[9].IntactFluid = Seawater;
-CompartmentContents1.Contents[10].IntactFluid = Seawater;
-
-CompartmentContents1.Contents[23].IntactFluid = Iron_ore_concrete;
-CompartmentContents1.Contents[21].IntactFluid = Iron_ore_concrete;
-CompartmentContents1.Contents[53].IntactFluid = Iron_ore_concrete;
+CompartmentContents1.Contents[8].IntactFluid = Seawater;
+CompartmentContents1.Contents[23].IntactFluid = Seawater;
 
 
+CompartmentContents1.Contents[20].IntactFluid = Iron_ore_concrete;
+CompartmentContents1.Contents[19].IntactFluid = Iron_ore_concrete;
+CompartmentContents1.Contents[41].IntactFluid = Iron_ore_concrete;
 
-CompartmentContents1.Contents[23].FillingFraction = Fixed_ballast;
-CompartmentContents1.Contents[21].FillingFraction = Fixed_ballast;
-CompartmentContents1.Contents[53].FillingFraction = Fixed_ballast;
 
-CompartmentContents1.Contents[44].FillingFraction = Fluid_ballast;
-CompartmentContents1.Contents[42].FillingFraction = Fluid_ballast;
-CompartmentContents1.Contents[41].FillingFraction = Fluid_ballast;
-CompartmentContents1.Contents[43].FillingFraction = Fluid_ballast;
-CompartmentContents1.Contents[7].FillingFraction = Fluid_ballast;
-CompartmentContents1.Contents[8].FillingFraction = Fluid_ballast;
+
+CompartmentContents1.Contents[20].FillingFraction = Fixed_ballast;
+CompartmentContents1.Contents[19].FillingFraction = Fixed_ballast;
+CompartmentContents1.Contents[41].FillingFraction = Fixed_ballast;
+
+CompartmentContents1.Contents[33].FillingFraction = Fluid_ballast;
+CompartmentContents1.Contents[4].FillingFraction = Fluid_ballast;
+CompartmentContents1.Contents[3].FillingFraction = Fluid_ballast;
+CompartmentContents1.Contents[35].FillingFraction = Fluid_ballast;
+CompartmentContents1.Contents[36].FillingFraction = Fluid_ballast;
+CompartmentContents1.Contents[34].FillingFraction = Fluid_ballast;
 CompartmentContents1.Contents[2].FillingFraction = Fluid_ballast;
+CompartmentContents1.Contents[1].FillingFraction = Fluid_ballast;
+CompartmentContents1.Contents[25].FillingFraction = Fluid_ballast;
 CompartmentContents1.Contents[11].FillingFraction = Fluid_ballast;
-CompartmentContents1.Contents[15].FillingFraction = Fluid_ballast;
-CompartmentContents1.Contents[6].FillingFraction = Fluid_ballast;
-CompartmentContents1.Contents[9].FillingFraction = Fluid_ballast;
-CompartmentContents1.Contents[10].FillingFraction = Fluid_ballast;
+CompartmentContents1.Contents[8].FillingFraction = Fluid_ballast;
+CompartmentContents1.Contents[23].FillingFraction = Fluid_ballast;
 
 
 AdditionalMatrices1 = new AdditionalMatrices(LoadingCondition1, "AdditionalMatrices1");

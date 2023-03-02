@@ -45,7 +45,7 @@ Initial guess, bounds and constraints are scaled to obtain values of the order o
 apparently this improves the convergence of the SLSQP-method
 """
 
-initital_guess = [1020/100, 345.0/100, 579.0/100]
+initital_guess = [1086.43/100, 364.0/100, 625.886/100]
 
 bounds = scipy.optimize.Bounds([900.0/100, 100.0/100, 400.0/100], [1200.0/100, 400.0/100, 1000.0/100], keep_feasible=True)
 
@@ -53,7 +53,7 @@ constraints = [scipy.optimize.NonlinearConstraint(optimization.static_offset, 0.
                scipy.optimize.NonlinearConstraint(optimization.Modes_period, 100.0/100, 150.0/100, keep_feasible=True),
                scipy.optimize.NonlinearConstraint(optimization.PreTension, 1000.0/1000, 3500.0/1000, keep_feasible=True),
                scipy.optimize.NonlinearConstraint(optimization.RatedTension, 0.0/1000, 5000.0/1000, keep_feasible=True),
-               scipy.optimize.NonlinearConstraint(optimization.Rated_touchdown, 0.0/100, 80.0/100, keep_feasible=True)]
+               scipy.optimize.NonlinearConstraint(optimization.Rated_touchdown, 0.0/100, 75.0/100, keep_feasible=True)]
 
 #result = scipy.optimize.minimize(optimization.objective, initital_guess, method='trust-constr', bounds=bounds, constraints=constraints, options= {"maxiter":2000,
 #                                                                                                                                                  "xtol":0.0001,
@@ -68,7 +68,7 @@ if result.success:
     print(result.x)
     print(optimization.objective(result.x))
     update_Mooring(result.x[0], (result.x[1], result.x[2]), optimization.lindx, optimization.Model)
-    optimization.Model.SaveData(new_path+"Optimized_newlines.dat")
+    optimization.Model.SaveData(new_path+"Optimized_newlines2.dat")
 else:
     print(result.message)
 debug = True
