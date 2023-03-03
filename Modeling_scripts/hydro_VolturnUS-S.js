@@ -1,13 +1,167 @@
-// HydroD V6.1-02 started 2023-02-27 09:44:57
-FEM_path = "S:\\Master\\Linear convergence study\\Volturn\\Mesh_1m\\Geo_1m\\"
+// Include following part if scripts is used
+
+Workspace = Reference("/Workspace");
+Environment = new EnvironmentFolder(Workspace, "Environment");
+Environment.Description = null;
+//
+Workspace = Reference("/Workspace");
+Properties = new CompartmentPropertiesFolder(Workspace, "Properties");
+Properties.Description = null;
+//
+Workspace = Reference("/Workspace");
+StabilityProperties = new StabilityPropertiesFolder(Workspace, "StabilityProperties");
+StabilityProperties.Description = null;
+//
+Workspace = Reference("/Workspace");
+Models = new ModelsFolder(Workspace, "Models");
+Models.Description = null;
+//
+Workspace = Reference("/Workspace");
+HydroModels = new HydroModelsFolder(Workspace, "HydroModels");
+HydroModels.Description = null;
+//
+Workspace = Reference("/Workspace");
+Rules = new RulesFolder(Workspace, "Rules");
+Rules.Description = null;
+//
+Workspace = Reference("/Workspace");
+Analyses = new AnalysesFolder(Workspace, "Analyses");
+Analyses.Description = null;
+//
+Workspace = Reference("/Workspace");
+Plots = new PlotsFolder(Workspace, "Plots");
+Plots.Description = null;
+//
+Workspace = Reference("/Workspace");
+Tables = new TablesFolder(Workspace, "Tables");
+Tables.Description = null;
+//
+Workspace = Reference("/Workspace");
+Pictures = new PicturesFolder(Workspace, "Pictures");
+Pictures.Description = null;
+//
+Workspace = Reference("/Workspace");
+Reports = new ReportsFolder(Workspace, "Reports");
+Reports.Description = null;
+//
+Workspace = Reference("/Workspace");
+ViewSettings = new ViewSettingsFolder(Workspace, "ViewSettings");
+ViewSettings.Description = null;
+//
+ViewSettings = Reference("/Workspace/ViewSettings");
+ViewSetting1 = new ViewSetting(ViewSettings, "ViewSetting1");
+ViewSetting1.BackgroundBottomColor = Color.FromArgb(255, 0, 0, 0);
+ViewSetting1.BackgroundColor = Color.FromArgb(255, 0, 0, 0);
+ViewSetting1.BackgroundGradient = false;
+ViewSetting1.BackgroundTopColor = Color.FromArgb(255, 169, 169, 169);
+ViewSetting1.BillboardLabelDepthOffset = 0 m;
+ViewSetting1.BillboardLabelHeight = 10;
+ViewSetting1.CameraPosition = new Position3D(240 m, -120 m, 80 m);
+ViewSetting1.CameraType = CameraType.Perspective;
+ViewSetting1.CoordinateSystemLabelBackground = Color.FromArgb(0, 0, 0, 1);
+ViewSetting1.CoordinateSystemLabelColor = Color.FromArgb(0, 0, 0, 1);
+ViewSetting1.Description = null;
+ViewSetting1.FarPlaneDistance = 1000000 m;
+ViewSetting1.FieldOfView = 45 deg;
+ViewSetting1.GridColor = Color.FromArgb(0, 0, 0, 1);
+ViewSetting1.GridLength = 100 m;
+ViewSetting1.GridMajorInterval = 10 m;
+ViewSetting1.GridMinorInterval = 1 m;
+ViewSetting1.GridThickness = 0.04 m;
+ViewSetting1.GridWidth = 100 m;
+ViewSetting1.InputCoordinateSystemDiameter = 0.5 m;
+ViewSetting1.InputCoordinateSystemLabel = "Input system";
+ViewSetting1.InputCoordinateSystemSize = 3 m;
+ViewSetting1.LabelBackground = null;
+ViewSetting1.LabelBorderColor = null;
+ViewSetting1.LabelColor = Color.FromArgb(255, 0, 0, 0);
+ViewSetting1.LabelPinColor = null;
+ViewSetting1.LineThicknessScale = 0.1 m;
+ViewSetting1.LookDirection = new Direction3D(-240 m, 120 m, -80 m);
+ViewSetting1.MaxNumberOfLabels = 10000;
+ViewSetting1.NearPlaneDistance = 0.1 m;
+ViewSetting1.OpenWhenLoaded = true;
+ViewSetting1.OrthographicWidth = 100 m;
+ViewSetting1.ShowCoordinateSystem = true;
+ViewSetting1.ShowGrid = false;
+ViewSetting1.ShowInputCoordinateSystem = false;
+ViewSetting1.SpatialLabelHeight = 1 m;
+ViewSetting1.UpDirection = new Vector3D(0, 0, 1);
+ViewSetting1.ViewSubtitle = null;
+ViewSetting1.ViewTitle = null;
+ViewSetting1.ViewTitleColor = Color.FromArgb(0, 0, 0, 1);
+//
+ViewSetting1 = Reference("/Workspace/ViewSettings/ViewSetting1");
+HydroViewSetting1 = new HydroViewSetting(ViewSetting1, "HydroViewSetting1");
+HydroViewSetting1.BaseLineColor = Color.FromArgb(0, 0, 0, 1);
+HydroViewSetting1.BeamColor = Color.FromArgb(255, 128, 128, 128);
+HydroViewSetting1.BeamDivisions = 18;
+HydroViewSetting1.BeamThickness = 1;
+HydroViewSetting1.BuoyancyModelColor = Color.FromArgb(255, 247, 150, 70);
+HydroViewSetting1.CompartmentDamageColor = Color.FromArgb(255, 255, 99, 71);
+HydroViewSetting1.CompartmentDeckTankColor = Color.FromArgb(255, 255, 99, 71);
+HydroViewSetting1.CompartmentEdgeColor = Color.FromArgb(0, 0, 0, 1);
+HydroViewSetting1.CompartmentEdgeThickness = 2;
+HydroViewSetting1.CompartmentFloodedByOpeningColor = Color.FromArgb(255, 255, 99, 71);
+HydroViewSetting1.CompartmentPlateBackColor = Color.FromArgb(255, 0, 255, 127);
+HydroViewSetting1.CompartmentPlateColor = Color.FromArgb(255, 216, 191, 216);
+HydroViewSetting1.CompartmentSharpEdgeLimit = 45 deg;
+HydroViewSetting1.DeckEdgePointSize = 1 m;
+HydroViewSetting1.Description = null;
+HydroViewSetting1.GlobalCoordinateSystemDiameter = 0.5 m;
+HydroViewSetting1.GlobalCoordinateSystemSize = 3 m;
+HydroViewSetting1.HydroPressureLoadArrowColor = Color.FromArgb(255, 173, 216, 230);
+HydroViewSetting1.HydroPressureLoadArrowDiameter = 0.5 m;
+HydroViewSetting1.HydroPressureLoadArrowDivisions = 4;
+HydroViewSetting1.HydroPressureLoadArrowLength = 3 m;
+HydroViewSetting1.KeelLineColor = Color.FromArgb(0, 0, 0, 1);
+HydroViewSetting1.KeelLineDiameter = 0.1 m;
+HydroViewSetting1.LoadCrossSectionArrowDiameter = 2 m;
+HydroViewSetting1.LoadCrossSectionArrowLength = 10 m;
+HydroViewSetting1.LoadCrossSectionFrameColor = Color.FromArgb(255, 0, 0, 0);
+HydroViewSetting1.LoadCrossSectionFrameThickness = 1;
+HydroViewSetting1.LoadCrossSectionPointSize = 3 m;
+HydroViewSetting1.MarkerColor = Color.FromArgb(255, 255, 99, 71);
+HydroViewSetting1.MarkerDiameter = 3 m;
+HydroViewSetting1.OpeningDiameter = 3 m;
+HydroViewSetting1.PanelEdgeColor = Color.FromArgb(255, 0, 0, 0);
+HydroViewSetting1.PanelEdgeThickness = 1;
+HydroViewSetting1.PanelShrinkFactor = new Fraction(0.1);
+HydroViewSetting1.PerpendicularHeight = 30 m;
+HydroViewSetting1.PlateBackColor = Color.FromArgb(255, 255, 165, 0);
+HydroViewSetting1.PlateColor = Color.FromArgb(255, 178, 34, 34);
+HydroViewSetting1.PointMassColor = Color.FromArgb(255, 147, 137, 83);
+HydroViewSetting1.PointMassDiameter = 5 m;
+HydroViewSetting1.PointMassDivisions = 16;
+HydroViewSetting1.SolidBackColor = Color.FromArgb(255, 0, 0, 255);
+HydroViewSetting1.SolidColor = Color.FromArgb(255, 0, 128, 0);
+HydroViewSetting1.SpecifyCompartmentPlateBackColor = false;
+HydroViewSetting1.SpecifyPlateBackColor = true;
+HydroViewSetting1.SpecifySolidBackColor = true;
+HydroViewSetting1.ThrusterForceColor = Color.FromArgb(255, 255, 165, 0);
+HydroViewSetting1.ThrusterForceRadius = 3 m;
+HydroViewSetting1.UnprotectedOpeningColor = Color.FromArgb(255, 255, 165, 0);
+HydroViewSetting1.WatertightOpeningColor = Color.FromArgb(255, 0, 128, 0);
+HydroViewSetting1.WeathertightOpeningColor = Color.FromArgb(255, 255, 0, 0);
+//
+Workspace = Reference("/Workspace");
+Wizards = new WizardsFolder(Workspace, "Wizards");
+Wizards.Description = null;
+
+//
+
+
+FEM_path = ""
 
 Mass_type = "Including_full_ballast";  // "Including_full_ballast" / "Including_fixed_ballast" / "Excluding_ballast"
 
 Drag_type = "Critical";  // "Critical" / "Morison"
 
-mean_drift = false;  // "True" / "False"
+mean_drift = false;  // true / false
 
-diff_freq = false;  // "True" / "False"
+diff_freq = false;  // true / false
+
+execute = true;  // true / false
 
 tank_method = "Quasi-static";  // "Dynamic" / "Quasi-static"
 
@@ -120,6 +274,7 @@ LoadingCondition1.Location = Location1;
 LoadingCondition1.WaterLineZ = 0 m;
 LoadingCondition1.TrimAngle = 0 deg;
 LoadingCondition1.HeelAngle = 0 deg;
+LoadingCondition1.BalancingTolerance = new Fraction(0.0001);
 
 MorisonModel1 = new MorisonModel(HydroModel1, "MorisonModel1");
 MorisonModel1.ElementModel = Morison;
@@ -394,3 +549,7 @@ if (tank_method == "Dynamic"){
 
 WadamAnalysis1.IncludeLimitingFrequencies = true;
 WadamAnalysis1.IncludeForwardSpeed = false;
+
+if (execute){
+    WadamAnalysis1.Execute();
+}
