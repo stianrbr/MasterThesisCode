@@ -157,13 +157,15 @@ Mass_type = "Including_full_ballast";  // "Including_full_ballast" / "Including_
 
 Drag_type = "Critical";  // "Critical" / "Morison"
 
-mean_drift = false;  // true / false
+mean_drift = true;  // true / false
 
-diff_freq = false;  // true / false
+diff_freq = true;  // true / false
 
-execute = true;  // true / false
+execute = false;  // true / false
 
 tank_method = "Quasi-static";  // "Dynamic" / "Quasi-static"
+
+anchor_formulation = "Point-mass"; // "Point-mass" / "Anchor-element"
 
 Hs = 10 m;
 Tp = 15 s;
@@ -260,13 +262,14 @@ Pon.Cdz = 1;
 Pon.Cay = 1;
 Pon.Caz = 1;
 
-AnchorProperties1 = new AnchorProperties(Properties, "AnchorProperties1");
-AnchorProperty1 = new AnchorProperty(AnchorProperties1, "AnchorProperty1");
-AnchorProperty1.HorizontalStiffness = 0 N/m;
-AnchorProperty1.VerticalStiffness = 0 N/m;
-AnchorProperty1.PreTension = 1272440 N;
-AnchorProperty1.AngleSeaSurface = 36.24 deg;
-
+if (anchor_formulation == "Anchor-element"){
+    AnchorProperties1 = new AnchorProperties(Properties, "AnchorProperties1");
+    AnchorProperty1 = new AnchorProperty(AnchorProperties1, "AnchorProperty1");
+    AnchorProperty1.HorizontalStiffness = 0 N / m;
+    AnchorProperty1.VerticalStiffness = 0 N / m;
+    AnchorProperty1.PreTension = 1272440 N;
+    AnchorProperty1.AngleSeaSurface = 36.24 deg;
+}
 
 LoadingConditions1 = new LoadingConditions(HydroModel1, "LoadingConditions1");
 LoadingCondition1 = new LoadingCondition(LoadingConditions1, "LoadingCondition1");
@@ -286,24 +289,25 @@ MorisonModel1.Sections[0].DragOnly = true;
 MorisonModel1.Sections[1].DragOnly = true;
 MorisonModel1.Sections[2].DragOnly = true;
 
-AnchorElement1 = new AnchorElement(MorisonModel1, "AnchorElement1");
-AnchorElement1.FairleadNode = 2;
-AnchorElement1.WindlassNode = 2;
-AnchorElement1.AnchorProperty = AnchorProperty1;
-AnchorElement1.XaxisAngle = 240 deg;
+if (anchor_formulation == "Anchor-element"){
+    AnchorElement1 = new AnchorElement(MorisonModel1, "AnchorElement1");
+    AnchorElement1.FairleadNode = 2;
+    AnchorElement1.WindlassNode = 2;
+    AnchorElement1.AnchorProperty = AnchorProperty1;
+    AnchorElement1.XaxisAngle = 240 deg;
 
-AnchorElement2 = new AnchorElement(MorisonModel1, "AnchorElement2");
-AnchorElement2.FairleadNode = 14;
-AnchorElement2.WindlassNode = 14;
-AnchorElement2.AnchorProperty = AnchorProperty1;
-AnchorElement2.XaxisAngle = 0 deg;
+    AnchorElement2 = new AnchorElement(MorisonModel1, "AnchorElement2");
+    AnchorElement2.FairleadNode = 14;
+    AnchorElement2.WindlassNode = 14;
+    AnchorElement2.AnchorProperty = AnchorProperty1;
+    AnchorElement2.XaxisAngle = 0 deg;
 
-AnchorElement3 = new AnchorElement(MorisonModel1, "AnchorElement3");
-AnchorElement3.FairleadNode = 21;
-AnchorElement3.WindlassNode = 21;
-AnchorElement3.XaxisAngle = 120 deg;
-AnchorElement3.AnchorProperty = AnchorProperty1;
-
+    AnchorElement3 = new AnchorElement(MorisonModel1, "AnchorElement3");
+    AnchorElement3.FairleadNode = 21;
+    AnchorElement3.WindlassNode = 21;
+    AnchorElement3.XaxisAngle = 120 deg;
+    AnchorElement3.AnchorProperty = AnchorProperty1;
+}
 StructureReductions1 = new StructureReductions(Properties, "StructureReductions1");
 StructureReduction1 = new StructureReduction(StructureReductions1, "StructureReduction1");
 StructureReduction1.Value = new Fraction(0);
@@ -385,6 +389,25 @@ if (Mass_type=="Including_full_ballast") {
     Fixed_ballast.Value = new Fraction(0.1591847);
 }
 
+if (anchor_formulation == "Point-mass") {
+    MassModel2 = new MassModel(HydroModel1, "MassModel2");
+    MassModel2.MassModelType = MassModelType.PointMassTable;
+    MassModel2.PointMasses.Add(new PointMass());
+    MassModel2.PointMasses[0].Mass = 76697.4451 kg;
+    MassModel2.PointMasses[0].X = 58.0 m;
+    MassModel2.PointMasses[0].Y = 0.0 m;
+    MassModel2.PointMasses[0].Z = -14 m;
+    MassModel2.PointMasses.Add(new PointMass());
+    MassModel2.PointMasses[1].Mass = 76697.4451 kg;
+    MassModel2.PointMasses[1].X = -29.0 m;
+    MassModel2.PointMasses[1].Y = -50.229 m;
+    MassModel2.PointMasses[1].Z = -14 m;
+    MassModel2.PointMasses.Add(new PointMass());
+    MassModel2.PointMasses[2].Mass = 76697.4451 kg;
+    MassModel2.PointMasses[2].X = -29.0 m;
+    MassModel2.PointMasses[2].Y = 50.229 m;
+    MassModel2.PointMasses[2].Z = -14 m;
+}
 
 SecondOrderFreeSurfaceModel1 = new SecondOrderFreeSurfaceModel(LoadingCondition1, "SecondOrderFreeSurfaceModel1");
 SecondOrderFreeSurfaceModel1.ElementModel = Free_surface;
@@ -520,8 +543,9 @@ if (Drag_type == "Critical"){
 
 if (mean_drift){
     WadamAnalysis1.CalculateDriftForces = true;
-    WadamAnalysis1.IncludeBiDirectionalWaves = true;
-    WadamAnalysis1.PressureIntegration = false;
+    WadamAnalysis1.IncludeBiDirectionalWaves = false;
+    WadamAnalysis1.PressureIntegration = true;
+    WadamAnalysis1.PressureIntegrationControlSurfaceType = PressureIntegrationControlSurfaceType.Circular;
     WadamAnalysis1.FarFieldIntegration = true;
 }else{
     WadamAnalysis1.CalculateDriftForces = false;
@@ -530,8 +554,11 @@ if (mean_drift){
 if (diff_freq){
     WadamAnalysis1.DifferenceFrequencies = true;
     WadamAnalysis1.CombiDiffType = CombinationDiffType.Selected;
-    WadamAnalysis1.MaxFreqDiff = 0.314159 rad/s;
+    WadamAnalysis1.SecondOrderQuadraticForce = true;
+    WadamAnalysis1.MaxFreqDiff = 0.25 rad/s;
     WadamAnalysis1.MaxDirDiff = 0 deg;
+    WadamAnalysis1.UseFreeSurfaceIntegral = true;
+    WadamAnalysis1.UseThreeLayerFreeSurface = true;
     if (Drag_type == "Morison") {
         WadamAnalysis1.IncludeDampingFromMorisonModel = true;
     }

@@ -17,8 +17,8 @@ Generate and mesh mean wetted surface using XZ as symmetry plane
 
 
 
-mesh_size = 0.5 m;  // Mesh size
-Mesh_radius = 150 m;  // Radius for free surface mesh
+mesh_size = 2.0 m;  // Mesh size
+Mesh_radius = 300 m;  // Radius for free surface mesh
 FS_mesh_length = 5 m;  // Mesh size for free surface mesh
 mesh_lid = 0.5 m;  // Mesh size for internal lids
 

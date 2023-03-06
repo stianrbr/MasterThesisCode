@@ -1,7 +1,7 @@
 
 path = "C:\\Users\\stian\\OneDrive - NTNU\\5. klasse\\Masteroppgave\\MasterThesisCode\\Modeling_scripts\\"
 
-vessel = "VolturnUS-S"  // "VolturnUS-S" / "INO15"
+vessel = "INO15"  // "VolturnUS-S" / "INO15"
 
 geom_file = path+"geometry_"+vessel+".js"
 
@@ -24,6 +24,7 @@ GeniEActivity1.CmdInputFile = GeniEActivity1.Workspace + "geometry_"+vessel+".js
 
 GeniEActivity1.UseLocalCmdInputFile = true;
 GeniEActivity1.InputMode = InputMode.Background;
+GeniEActivity1.DatabaseStatus = DatabaseStatus.New;
 
 GeniEActivity1.SelectedLicenses.Remove("RefineMesh");
 
@@ -31,7 +32,7 @@ HydroDActivity1.CmdInputFile = hydro_file;
 HydroDActivity1.UseLocalCmdInputFile = true;
 Copy(hydro_file, HydroDActivity1.Workspace + "hydro_"+vessel+".js");
 HydroDActivity1.CmdInputFile = HydroDActivity1.Workspace + "hydro_"+vessel+".js"
-
+HydroDActivity1.DatabaseStatus = DatabaseStatus.New;
 
 this.Execute();
 
