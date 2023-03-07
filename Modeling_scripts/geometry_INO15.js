@@ -45,7 +45,7 @@ Steel = MaterialLinear(360e6, 7850 kg/m^3, 2.1e+11 Pa, 0.3, 1.2e-05 delC^-1, 0.0
 Steel.setDefault();
 
 
-Mesh_length = 2.0m; // Size of elements
+Mesh_length = 4.0m; // Size of elements
 Mesh_radius = 300 m;  // Radius for free surface mesh
 FS_mesh_length = 5.0 m;  // Mesh size for free surface mesh
 mesh_lid = 0.5 m;  // Mesh size for internal lids
