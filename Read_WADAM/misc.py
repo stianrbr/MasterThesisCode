@@ -39,10 +39,10 @@ class Hydro_static:
         self.COB = Point(xb, yb, zb)
 
 class Environmental_data:
-    def __init__(self, water_depth, wave_periods, wave_length):
+    def __init__(self, water_depth, wave_periods, wave_headings):
         self.water_depth = water_depth
         self.wave_periods = wave_periods
-        self.wave_lengths = wave_length
+        self.wave_headings = wave_headings
 
 class Tank:
     def __init__(self, tank_numb=None, mass=None, cog=None, added_mass=None, damping=None, restoring=None):
@@ -53,10 +53,33 @@ class Tank:
         self.damping = damping
         self.restoring = restoring
 
+class RAO:
 
-def extract_number_from_lines(file, line_indx, numb_indx):
-    temp = [float(re.findall(regexp, file[i])[j]) for i, j in zip(line_indx, numb_indx)]
-    return temp
+    def __init__(self, amp, ph=None, period=None, heading=None):
+        self.amplitude = amp
+        self.phase = ph
+        self.period = period
+        self.heading = heading
+
+class RAO_2nd_order:
+
+    def __init__(self, amp, ph, pi, pj, hi, hj):
+        self.amplitude = amp
+        self.phase = ph
+        self.period_i = pi
+        self.period_j = pj
+        self.heading_i = hi
+        self.heading_j = hj
+
+class Dimensionalizing_factors:
+    def __init__(self, ro, g, vol, l, wa):
+        self.RO = ro
+        self.G = g
+        self.VOL = vol
+        self.L = l
+        self.WA = wa
+
+
 class WADAM_res:
     def __init__(self, filename):
         self.filename = filename
@@ -69,30 +92,55 @@ class WADAM_res:
         self.Inf_freq_added_mass = None
         # Damping
         self.Total_damping = []
+        self.Total_pot_damping = None
         self.Hull_damping = None
-
         # Restoring
         self.Hydrostat_restoring = None
         self.Mooring_restoring = None
         self.Total_restoring = None
         # Load RAO
-        self.loadRAO = None
+        self.LoadRAO = []
         # Response RAO
-        self.motionRAO = None
+        self.MotionRAO = []
         # Tanks
         self.tanks = None
+        # Mean drift (far-field)
+        self.mean_drift_horizontal = []
+        # Mean drift (PI/CS)
+        self.mean_drift_full = []
+        # QTF
+        self.diff_freq_load_QTF = []
+        self.diff_freq_motion_QTF = []
+        # Factors for dimensionalizing
+        self.dimensions = None
+
+        self.read_file()
+        self.dimensionalize()
 
     def read_file(self):
+        """
+
+        :return:
+        """
+        """
+        Extracting data from LIS-file
+        """
         with open(self.filename) as f:
             self.datafile = f.readlines()
-
             for i, line in enumerate(self.datafile):
                 if not line.isspace():
+                    if line == '1\n':
+                        if self.datafile[i+1] == ' 4.3 GLOBAL HYDRODYNAMIC RESULTS\n':
+                            page_start = i+3
+                        else:
+                            page_start = i
                     if "COMPARTMENT" in line:
                         self.compartment_flag = True
                         self.tanks = []
                         self.Hull_added_mass = []
                         self.Hull_damping = []
+                        self.Total_pot_damping = []
+
                     if "MOORING" in line:
                         self.mooring_flag = True
                     if "MASS PROPERTIES AND STRUCTURAL DATA:" in line:
@@ -155,50 +203,343 @@ class WADAM_res:
                     """
 
                     if "HYDROSTATIC RESTORING COEFFICIENT MATRIX" in line:
-                        c_matrix = np.array([re.findall(regexp, self.datafile[i+4+c_i])[1:] for c_i in range(0,6)]).astype(float)
+                        c_matrix = np.array([re.findall(regexp, self.datafile[i+4+c_i])[1:] for c_i in range(0,6)]).astype(np.longdouble)
                         self.Hydrostat_restoring = c_matrix
                     if "TOTAL RESTORING COEFFICIENT MATRIX" in line:
-                        c_matrix = np.array([re.findall(regexp, self.datafile[i+4+c_i])[1:] for c_i in range(0,6)]).astype(float)
+                        c_matrix = np.array([re.findall(regexp, self.datafile[i+4+c_i])[1:] for c_i in range(0,6)]).astype(np.longdouble)
                         self.Total_restoring = c_matrix
                     if self.compartment_flag:
                         if "STATIC RESTORING COEFFICIENT MATRIX FOR FLUID IN TANK" in line:
-                            tank_numb = int(re.findall(regexp, line)[0])
-                            c_t_matrix = np.array([re.findall(regexp, self.datafile[i+4+c_i])[1:] for c_i in range(0,6)]).astype(float)
-                            self.tanks.append(Tank(tank_numb=tank_numb, restoring=c_t_matrix))
+                            self.tank_numb = int(re.findall(regexp, line)[0])
+                            self.c_t_matrix = np.array([re.findall(regexp, self.datafile[i+4+c_i])[1:] for c_i in range(0,6)]).astype(np.longdouble)
+                            self.tanks.append(Tank(tank_numb=self.tank_numb, added_mass=[], damping=[], restoring=self.c_t_matrix))
                     if self.mooring_flag:
                         if "STATIC RESTORING COEFFICIENT MATRIX FOR TLP AND MOORING ELEMENTS" in line:
-                            self.Mooring_restoring = np.array([re.findall(regexp, self.datafile[i+4+c_i])[1:] for c_i in range(0,6)]).astype(float)
+                            self.Mooring_restoring = np.array([re.findall(regexp, self.datafile[i+4+c_i])[1:] for c_i in range(0,6)]).astype(np.longdouble)
 
                     """
                     Extracting added mass data
                     """
 
-                    if "TOTAL ADDED MASS MATRIX " in line:
-                        a_matrix = np.array([re.findall(regexp, self.datafile[i+4+a_i])[1:] for a_i in range(0,6)]).astype(float)
-                        wave_len_number = int(re.findall(regexp, self.datafile[i-9])[1])
+                    if "ADDED MASS MATRIX             " in line:
+                        a_matrix = np.array([re.findall(regexp, self.datafile[i+4+a_i])[1:] for a_i in range(0,6)]).astype(np.longdouble)
+                        wave_len_number = int(re.findall(regexp, self.datafile[page_start+2])[1])
                         self.Total_added_mass.append(Radiation_res(matrix=a_matrix, period=self.Environment_data.wave_periods[wave_len_number-1]))
 
                     if "POTENTIAL ADDED MASS MATRIX FOR INFINITE WAVE PERIOD" in line:
-                        self.Inf_freq_added_mass = np.array([re.findall(regexp, self.datafile[i+4+a_i])[1:] for a_i in range(0,6)]).astype(float)
+                        self.Inf_freq_added_mass = np.array([re.findall(regexp, self.datafile[i+4+a_i])[1:] for a_i in range(0,6)]).astype(np.longdouble)
 
                     if "POTENTIAL ADDED MASS MATRIX FOR ZERO WAVE PERIOD" in line:
-                        self.Zero_freq_added_mass = np.array([re.findall(regexp, self.datafile[i + 4 + a_i])[1:] for a_i in range(0, 6)]).astype(float)
+                        self.Zero_freq_added_mass = np.array([re.findall(regexp, self.datafile[i + 4 + a_i])[1:] for a_i in range(0, 6)]).astype(np.longdouble)
 
                     if self.compartment_flag:
                         if "ADDED MASS MATRIX OF OUTER HULL" in line:
-                            a_matrix = np.array([re.findall(regexp, self.datafile[i + 4 + a_i])[1:] for a_i in range(0, 6)]).astype(float)
-                            wave_len_number = int(re.findall(regexp, self.datafile[i - 9])[1])
+                            a_matrix = np.array([re.findall(regexp, self.datafile[i + 4 + a_i])[1:] for a_i in range(0, 6)]).astype(np.longdouble)
+                            wave_len_number = int(re.findall(regexp, self.datafile[page_start+2])[1])
                             self.Hull_added_mass.append(Radiation_res(matrix=a_matrix, period=self.Environment_data.wave_periods[wave_len_number-1]))
                         if "ADDED MASS MATRIX OF TANK " in line:
                             tank_numb = int(re.findall(regexp, line)[0])
-                            a_t_matrix = np.array([re.findall(regexp, self.datafile[i + 4 + a_i])[1:] for a_i in range(0, 6)]).astype(float)
-                            wave_len_number = int(re.findall(regexp, self.datafile[i - 9])[1])
-                            assert(self.tanks[tank_numb-1].tank_numb == tank_numb)
-                            self.tanks[tank_numb-1].added_mass = Radiation_res(matrix=a_t_matrix, period=self.Environment_data.wave_periods[wave_len_number-1])
+                            a_t_matrix = np.array([re.findall(regexp, self.datafile[i + 4 + a_i])[1:] for a_i in range(0, 6)]).astype(np.longdouble)
+                            wave_len_number = int(re.findall(regexp, self.datafile[page_start+2])[1])
+                            for t in list(self.tanks):
+                                if t.tank_numb == tank_numb:
+                                    temp = Radiation_res(matrix=a_t_matrix, period=self.Environment_data.wave_periods[wave_len_number-1])
+                                    t.added_mass.append(temp)
+                                    break
+
+
 
                     """
                     Extracting damping data
                     """
+                    if self.compartment_flag:
+                        if "TOTAL POTENTIAL DAMPING MATRIX" in line:
+                            b_matrix = np.array([re.findall(regexp, self.datafile[i+4+b_i])[1:] for b_i in range(0,6)]).astype(np.longdouble)
+                            wave_len_number = int(re.findall(regexp, self.datafile[page_start+2])[1])
+                            self.Total_pot_damping.append(Radiation_res(matrix=b_matrix, period=self.Environment_data.wave_periods[wave_len_number-1]))
+                        if "POTENTIAL DAMPING MATRIX OF OUTER HULL" in line:
+                            b_matrix = np.array([re.findall(regexp, self.datafile[i + 4 + b_i])[1:] for b_i in range(0, 6)]).astype(np.longdouble)
+                            wave_len_number = int(re.findall(regexp, self.datafile[page_start+2])[1])
+                            self.Hull_damping.append(Radiation_res(matrix=b_matrix,period=self.Environment_data.wave_periods[wave_len_number - 1]))
+                        if "POTENTIAL DAMPING MATRIX OF TANK " in line:
+                            tank_numb = int(re.findall(regexp, line)[0])
+                            b_t_matrix = np.array([re.findall(regexp, self.datafile[i + 4 + b_i])[1:] for b_i in range(0, 6)]).astype(np.longdouble)
+                            wave_len_number = int(re.findall(regexp, self.datafile[page_start+2])[1])
+                            for t in self.tanks:
+                                if t.tank_numb == tank_numb:
+                                    t.damping.append(Radiation_res(matrix=b_t_matrix, period=self.Environment_data.wave_periods[wave_len_number-1]))
+                    else:
+                        if "TOTAL DAMPING MATRIX" in line:
+                            b_matrix = np.array([re.findall(regexp, self.datafile[i + 4 + b_i])[1:] for b_i in range(0, 6)]).astype(np.longdouble)
+                            wave_len_number = int(re.findall(regexp, self.datafile[page_start+2])[1])
+                            self.Total_damping.append(Radiation_res(matrix=b_matrix, period=self.Environment_data.wave_periods[wave_len_number - 1]))
+
+                    """
+                    Extracting 1st order load RAO and motion RAO
+                    """
+                    if "EXCITING FORCES AND MOMENTS" in line:
+                        wave_len_number = int(re.findall(regexp, self.datafile[page_start+2])[1])
+                        heading_number = int(re.findall(regexp, self.datafile[page_start+4])[0])
+                        amp_load = np.array([re.findall(regexp, self.datafile[i + 5 + 2*f_i])[3] for f_i in range(0,6)]).astype(np.longdouble)
+                        ph_load = np.array([re.findall(regexp, self.datafile[i + 5 + 2 * f_i])[4] for f_i in range(0, 6)]).astype(np.longdouble)
+                        if len(self.LoadRAO) < heading_number:
+                            self.LoadRAO.append([])
+                        self.LoadRAO[heading_number - 1].append(RAO(amp=amp_load, ph=ph_load, period=self.Environment_data.wave_periods[wave_len_number - 1], heading=self.Environment_data.wave_headings[heading_number - 1]))
+
+                        assert("MOTION" in self.datafile[i+18])
+                        amp_motion = np.array([re.findall(regexp, self.datafile[i + 23 + 2*x_i])[3] for x_i in range(0,6)]).astype(np.longdouble)
+                        ph_motion = np.array([re.findall(regexp, self.datafile[i + 23 + 2 * x_i])[4] for x_i in range(0, 6)]).astype(np.longdouble)
+                        if len(self.MotionRAO) < heading_number:
+                            self.MotionRAO.append([])
+                        self.MotionRAO[heading_number - 1].append(RAO(amp=amp_motion, ph=ph_motion, period=self.Environment_data.wave_periods[wave_len_number - 1], heading=self.Environment_data.wave_headings[heading_number - 1]))
+
+                    if "HORIZONTAL MEAN DRIFT FORCES AND MOMENT" in line:
+                        d_matrix = np.array([re.findall(regexp, self.datafile[i+4 + d_i])[0] for d_i in range(0,3)]).astype(np.longdouble)
+                        wave_len_number = int(re.findall(regexp, self.datafile[page_start + 2])[1])
+                        heading_number = int(re.findall(regexp, self.datafile[page_start + 4])[1])
+                        if len(self.mean_drift_horizontal) < heading_number:
+                            self.mean_drift_horizontal.append([])
+                        self.mean_drift_horizontal[heading_number-1].append(RAO(amp=d_matrix, period=self.Environment_data.wave_periods[wave_len_number - 1], heading=self.Environment_data.wave_headings[heading_number-1]))
+
+                    if "MEAN DRIFT FORCES AND MOMENTS" in line and not("HORIZONTAL" in line):
+                        d_matrix = np.array([re.findall(regexp, self.datafile[i+4 + d_i])[0] for d_i in range(0,6)]).astype(np.longdouble)
+                        wave_len_number = int(re.findall(regexp, self.datafile[page_start + 2])[1])
+                        heading_number = int(re.findall(regexp, self.datafile[page_start + 4])[1])
+                        if len(self.mean_drift_full) < heading_number:
+                            self.mean_drift_full.append([])
+                        self.mean_drift_full[heading_number-1].append(RAO(amp=d_matrix, period=self.Environment_data.wave_periods[wave_len_number - 1], heading=self.Environment_data.wave_headings[heading_number-1]))
+
+                    if "QUADRATIC SECOND-ORDER DIFFERENCE-FREQUENCY FORCES AND MOMENTS" in line:
+                        wave_len_number_i =    int(re.findall(regexp, self.datafile[page_start + 2])[1])
+                        wave_len_number_j = int(re.findall(regexp, self.datafile[page_start + 2])[2])
+                        heading_number_i = int(re.findall(regexp, self.datafile[page_start +4])[0])
+                        heading_number_j = int(re.findall(regexp, self.datafile[page_start +4])[1])
+                        amp_load = np.array([re.findall(regexp, self.datafile[i + 5 + 2 * f_i])[3] for f_i in range(0, 6)]).astype(np.longdouble)
+                        ph_load = np.array([re.findall(regexp, self.datafile[i + 5 + 2 * f_i])[4] for f_i in range(0, 6)]).astype(np.longdouble)
+                        if len(self.diff_freq_load_QTF) < heading_number_i:
+                            self.diff_freq_load_QTF.append([])
+                        if len(self.diff_freq_load_QTF[heading_number_i - 1]) < heading_number_j:
+                            self.diff_freq_load_QTF[heading_number_i - 1].append([])
+                        self.diff_freq_load_QTF[heading_number_i - 1][heading_number_j - 1].append(RAO_2nd_order(amp=amp_load, ph=ph_load, pi=self.Environment_data.wave_periods[wave_len_number_i - 1],
+                                                                                                                 pj= self.Environment_data.wave_periods[wave_len_number_j-1],
+                                                                                                                 hi= self.Environment_data.wave_headings[heading_number_i-1],
+                                                                                                                 hj= self.Environment_data.wave_headings[heading_number_j-1]))
+                        assert("QUADRATIC SECOND-ORDER DIFFERENCE-FREQUENCY MOTIONS" in self.datafile[i+19])
+                        amp_motion = np.array([re.findall(regexp, self.datafile[i + 24 + 2 * x_i])[3] for x_i in range(0, 6)]).astype(np.longdouble)
+                        ph_motion = np.array([re.findall(regexp, self.datafile[i + 24 + 2 * x_i])[4] for x_i in range(0, 6)]).astype(np.longdouble)
+                        if len(self.diff_freq_motion_QTF) < heading_number_i:
+                            self.diff_freq_motion_QTF.append([])
+                        if len(self.diff_freq_motion_QTF[heading_number_i - 1]) < heading_number_j:
+                            self.diff_freq_motion_QTF[heading_number_i - 1].append([])
+                        self.diff_freq_motion_QTF[heading_number_i - 1][heading_number_j - 1].append(RAO_2nd_order(amp=amp_motion, ph=ph_motion, pi=self.Environment_data.wave_periods[wave_len_number_i - 1],
+                                                                                                                 pj= self.Environment_data.wave_periods[wave_len_number_j-1],
+                                                                                                                 hi= self.Environment_data.wave_headings[heading_number_i-1],
+                                                                                                                 hj= self.Environment_data.wave_headings[heading_number_j-1]))
+
+                    if "THE OUTPUT IS NON-DIMENSIONALIZED USING -" in line:
+                        ro = float(re.findall(regexp, self.datafile[i+8])[0])
+                        g = float(re.findall(regexp, self.datafile[i+9])[0])
+                        vol = float(re.findall(regexp, self.datafile[i+10])[0])
+                        l = float(re.findall(regexp, self.datafile[i+11])[0])
+                        wa = float(re.findall(regexp, self.datafile[i+12])[0])
+                        self.dimensions = Dimensionalizing_factors(ro, g, vol, l, wa)
+
+
+    def dimensionalize(self):
+        """
+
+        :return:
+        """
+        """
+        Establishing factors for re-dimensionalizing
+        """
+        added_mass_dimension = np.zeros((6, 6), dtype=np.longdouble)
+        added_mass_dimension[0:3, 0:3] = np.ones((3, 3), dtype=np.longdouble) * self.dimensions.RO * self.dimensions.VOL
+        added_mass_dimension[3:6, 0:3] = np.ones((3, 3), dtype=np.longdouble) * self.dimensions.RO * self.dimensions.VOL * self.dimensions.L
+        added_mass_dimension[0:3, 3:6] = np.ones((3, 3), dtype=np.longdouble) * self.dimensions.RO * self.dimensions.VOL * self.dimensions.L
+        added_mass_dimension[3:6, 3:6] = np.ones((3, 3), dtype=np.longdouble) * self.dimensions.RO * self.dimensions.VOL * self.dimensions.L ** 2
+
+        damping_dimensions = np.zeros((6, 6), dtype=np.longdouble)
+        damping_dimensions[0:3, 0:3] = np.ones((3, 3), dtype=np.longdouble) * self.dimensions.RO * self.dimensions.VOL * np.sqrt(self.dimensions.G / self.dimensions.L)
+        damping_dimensions[3:6, 0:3] = np.ones((3, 3), dtype=np.longdouble) * self.dimensions.RO * self.dimensions.VOL * np.sqrt(self.dimensions.G * self.dimensions.L)
+        damping_dimensions[0:3, 3:6] = np.ones((3, 3), dtype=np.longdouble) * self.dimensions.RO * self.dimensions.VOL * np.sqrt(self.dimensions.G * self.dimensions.L)
+        damping_dimensions[3:6, 3:6] = np.ones((3, 3), dtype=np.longdouble) * self.dimensions.RO * self.dimensions.VOL * self.dimensions.L * np.sqrt(self.dimensions.G * self.dimensions.L)
+
+        restoring_dimensions = np.zeros((6, 6))
+        restoring_dimensions[0:3, 0:3] = np.ones((3, 3)) * self.dimensions.RO * self.dimensions.VOL * self.dimensions.G / self.dimensions.L
+        restoring_dimensions[3:6, 0:3] = np.ones((3, 3)) * self.dimensions.RO * self.dimensions.VOL * self.dimensions.G
+        restoring_dimensions[0:3, 3:6] = np.ones((3, 3)) * self.dimensions.RO * self.dimensions.VOL * self.dimensions.G
+        restoring_dimensions[3:6, 3:6] = np.ones((3, 3)) * self.dimensions.RO * self.dimensions.VOL * self.dimensions.G * self.dimensions.L
+
+        excitation_dimensions = np.zeros((6))
+        excitation_dimensions[0:3] = np.ones((3)) * self.dimensions.RO * self.dimensions.VOL * self.dimensions.G * self.dimensions.WA / self.dimensions.L
+        excitation_dimensions[3:6] = np.ones((3)) * self.dimensions.RO * self.dimensions.VOL * self.dimensions.G * self.dimensions.WA
+
+        motions_dimensions = np.zeros((6))
+        motions_dimensions[0:3] = np.ones((3)) * self.dimensions.WA
+        motions_dimensions[3:6] = np.ones((3)) * self.dimensions.WA / self.dimensions.L * 180 / np.pi
+
+        mean_drift_dimensions = np.zeros((6))
+        mean_drift_dimensions[0:3] = np.ones((3)) * self.dimensions.RO * self.dimensions.G * self.dimensions.L * self.dimensions.WA**2
+        mean_drift_dimensions[3:6] = np.ones((3)) * self.dimensions.RO * self.dimensions.G * self.dimensions.L**2 * self.dimensions.WA**2
+
+        QTF_force_dimensions = np.zeros((6))
+        QTF_force_dimensions[0:3] = np.ones((3)) * self.dimensions.RO * self.dimensions.G * self.dimensions.L
+        QTF_force_dimensions[3:6] = np.ones((3)) * self.dimensions.RO * self.dimensions.G * self.dimensions.L**2
+
+        QTF_motion_dimensions = np.zeros((6))
+        QTF_motion_dimensions[0:3] = np.ones((3)) * 1 / self.dimensions.L
+        QTF_motion_dimensions[3:6] = np.ones((3)) * 1 / self.dimensions.L**2 *  180 / np.pi
+
+        """
+        Performing multiplication
+        """
+        # Added mass
+        for elem in self.Total_added_mass: elem.Matrix *= added_mass_dimension
+        if self.compartment_flag:
+            for elem in self.Hull_added_mass: elem.Matrix *= added_mass_dimension
+        if self.Zero_freq_added_mass is not None:
+            self.Zero_freq_added_mass *= added_mass_dimension
+        if self.Inf_freq_added_mass is not None:
+            self.Inf_freq_added_mass *= added_mass_dimension
+
+        # Damping
+        for elem in self.Total_damping: elem.Matrix *= damping_dimensions
+        if self.compartment_flag:
+            for elem in self.Total_pot_damping: elem.Matrix *= damping_dimensions
+            for elem in self.Hull_damping: elem.Matrix *= damping_dimensions
+
+        # Restoring
+        self.Hydrostat_restoring *= restoring_dimensions
+        if self.Total_restoring is not None:
+            self.Total_restoring *= restoring_dimensions
+        if self.mooring_flag:
+            self.Mooring_restoring *= restoring_dimensions
+
+        # Load RAO
+        for l_RAO_h in self.LoadRAO:
+            for elem in l_RAO_h: elem.amplitude *= excitation_dimensions
+
+        # Displacement RAO
+        for d_rao_h in self.MotionRAO:
+            for elem in d_rao_h: elem.amplitude *= motions_dimensions
+
+        if self.compartment_flag:
+            for tank in self.tanks:
+                for a in tank.added_mass: a.Matrix *= added_mass_dimension
+                for b in tank.damping: b.Matrix *= damping_dimensions
+                tank.restoring *= restoring_dimensions
+
+        if len(self.mean_drift_horizontal) >0:
+            for m_drift_h in self.mean_drift_horizontal:
+                for elem in m_drift_h: elem.amplitude *= np.array([mean_drift_dimensions[0], mean_drift_dimensions[1],
+                                                                   mean_drift_dimensions[5]])
+        if len(self.mean_drift_full) > 0:
+            for m_drift_h in self.mean_drift_full:
+                for elem in m_drift_h: elem.amplitude *= mean_drift_dimensions
+
+        if len(self.diff_freq_load_QTF) > 0:
+            for m_drift_hi in self.diff_freq_load_QTF:
+                for m_drift_hij in m_drift_hi:
+                    for elem in m_drift_hij: elem.amplitude *= QTF_force_dimensions
+
+        if len(self.diff_freq_motion_QTF) >0:
+            for m_drift_hi in self.diff_freq_motion_QTF:
+                for m_drift_hij in m_drift_hi:
+                    for elem in m_drift_hij: elem.amplitude *= QTF_motion_dimensions
+
+
+    def get_Total_added_mass(self, i, j):
+        t_am = np.array([t.Matrix[i,j] for t in self.Total_added_mass])
+        p = np.array([t.period for t in self.Total_added_mass])
+        return t_am, p
+
+    def get_Hull_added_mass(self, i, j):
+        if self.Hull_added_mass is not None:
+            h_am = np.array([t.Matrix[i,j] for t in self.Hull_added_mass])
+            p = np.array([t.period for t in self.Hull_added_mass])
+            return h_am, p
+        else:
+            warnings.warn("Hull added mass is None")
+            return self.Hull_added_mass
+
+    def get_Total_damping(self, i, j):
+        t_damp = np.array([t.Matrix[i,j] for t in self.Total_damping])
+        p = np.array([t.period for t in self.Total_damping])
+        return t_damp, p
+
+    def get_Total_pot_damping(self, i, j):
+        if self.Total_pot_damping is not None:
+            t_damp = np.array([t.Matrix[i,j] for t in self.Total_pot_damping])
+            p = np.array([t.period for t in self.Total_pot_damping])
+            return t_damp, p
+        else:
+            warnings.warn("Total potential damping is None")
+            return self.Total_pot_damping
+
+    def get_Hull_damping(self, i, j):
+        if self.Hull_damping is not None:
+            h_damp = np.array([t.Matrix[i,j] for t in self.Hull_damping])
+            p = np.array([t.period for t in self.Hull_damping])
+            return h_damp, p
+        else:
+            warnings.warn("Hull damping is None")
+            return self.Hull_damping
+
+
+    def get_Motion_RAO(self, i, heading):
+        h_RAO = self.MotionRAO[heading]
+        x_amp = np.array([x.amplitude[i] for x in h_RAO])
+        x_ph = np.array([x.phase[i] for x in h_RAO])
+        period = np.array([x.period for x in h_RAO])
+        return x_amp, x_ph, period
+
+    def get_Load_RAO(self, i, heading):
+        h_RAO = self.LoadRAO[heading]
+        f_amp = np.array([x.amplitude[i] for x in h_RAO])
+        f_ph = np.array([x.phase[i] for x in h_RAO])
+        period = np.array([x.period for x in h_RAO])
+        return f_amp, f_ph, period
+
+    def get_tanks_added_mass(self, i, j):
+        if self.tanks is not None:
+            periods = self.Environment_data.wave_periods
+            temp_array = np.zeros_like(periods)
+            for tank in self.tanks:
+                temp_tank = np.array([t.Matrix[i,j] for t in tank.added_mass])
+                temp_array += temp_tank
+            return temp_array, periods
+        else:
+            warnings.warn("Tanks is None")
+            return self.tanks
+
+    def get_tanks_damping(self, i, j):
+        if self.tanks is not None:
+            periods = self.Environment_data.wave_periods
+            temp_array = np.zeros_like(periods)
+            for tank in self.tanks:
+                temp_tank = np.array([t.Matrix[i,j] for t in tank.damping])
+                temp_array += temp_tank
+            return temp_array, periods
+        else:
+            warnings.warn("Tanks is None")
+            return self.tanks
+
+    def get_tanks_restoring(self):
+        if self.tanks is not None:
+            periods = self.Environment_data.wave_periods
+            temp_array = np.zeros((6,6))
+            for tank in self.tanks:
+                temp_array += tank.restoring
+            return temp_array, periods
+        else:
+            warnings.warn("Tanks is None")
+            return self.tanks
+
+
+
+
+
 
 
 
