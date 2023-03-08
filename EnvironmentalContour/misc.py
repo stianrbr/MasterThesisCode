@@ -11,6 +11,15 @@ def weibull_wind(u, alpha, beta):
     """
     return 1-np.exp(-(u/beta)**alpha)
 
+def weibull_wind_pdf(u, alpha, beta):
+    """
+    Probability density distribution of mean wind speed at 10 meter altitude
+    :param u:
+    :param alpha:
+    :param beta:
+    :return:
+    """
+    return alpha/beta * (u/beta)**(alpha-1)*np.exp(-(u/beta)**alpha)
 
 def weibull_wave(h, u, a, b):
     """
@@ -26,6 +35,25 @@ def weibull_wave(h, u, a, b):
     alpha_h = power_function(u, *a)  # Shape parameter
     beta_h = power_function(u, *b)  # Scale parameter
     return 1-np.exp(-(h/beta_h)**alpha_h)
+
+def weibull_wave_pdf(h, u, a, b):
+    """
+    Cumulative conditional distribution of significant wave height,
+    formulated as a 2-parameter Weibull model
+    :param h: (ndarray, float) Significant wave height
+    :param u: (float) Mean wind speed
+    :param a: (tuple) Intercept, slope and exponent of shape parameterization
+    :param b: (tuple) Intercept, slope and exponent of scale parameterization
+    :return: (ndarray, float) cumulative probability P(H<h|u)
+    """
+    # Calculate parameterized values
+    alpha_h = power_function(u, *a)  # Shape parameter
+    beta_h = power_function(u, *b)  # Scale parameter
+    return alpha_h/beta_h * (h/beta_h)**(alpha_h-1)*np.exp(-(h/beta_h)**alpha_h)
+
+def joint_hs_tp(u, h, t, a, b, i, j, k, l):
+    temp = np.nan_to_num(weibull_wave_pdf(h, u, a, b)*log_normal_wave_period_pdf(t, u, h, i, j, k, l))
+    return np.trapz(temp, u)
 
 def log_normal_wave_period(t, u, h, i, j, k, l):
     """
@@ -49,6 +77,27 @@ def log_normal_wave_period(t, u, h, i, j, k, l):
     mu_ln_tp = np.log(mu_tp/(np.sqrt(1+nu**2)))
     return norm.cdf((np.log(t) - mu_ln_tp) / sigma_ln_tp)
 
+def log_normal_wave_period_pdf(t, u, h, i, j, k, l):
+    """
+    Cumulative conditional distribution of spectral peak period,
+    formulated as a log-normal model
+    :param t: (ndarray, float) Spectral peak period
+    :param u: (float) Mean wind speed
+    :param h: (float) Significant wave height
+    :param i: (tuple) Coeff. for power func. parameterization of expected spectral peak period
+    :param j: (tuple) Coeff. for power func. parameterization of expected mean wind speed
+    :param k: (tuple) Coeff. for exponential func. parameterization of coeff. of variance
+    :param l: (tuple) Coeff. for power func. parameterization of theta (slope)
+    :return: (ndarray, float) cumulative probability P(T<t|u,h)
+    """
+    t_bar = power_function(h, *i)
+    u_bar = power_function(h, *j)
+    nu = exponential(h, *k)
+    theta = power_function(h, *l)
+    mu_tp = t_bar*(1+theta*((u-u_bar)/u_bar))
+    sigma_ln_tp = np.sqrt(np.log(nu**2+1))
+    mu_ln_tp = np.log(mu_tp/(np.sqrt(1+nu**2)))
+    return 1/(t*sigma_ln_tp*np.sqrt(2*np.pi)) * np.exp(-((np.log(t)-mu_ln_tp)**2/(2*sigma_ln_tp**2)))
 
 def transform_u1(u1, alpha, beta):
     """

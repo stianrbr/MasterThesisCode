@@ -9,8 +9,15 @@ sns.set_theme(style="whitegrid", context="paper", font_scale=1.5)
 
 mainfolder = "S:\\Master\\Body mesh - sensitivity full solution\\Volturn\\"
 
+start_period = 4
+end_period = 60
+
+
 mesh_0_5 = mainfolder+"Mesh_0_5_m_linear\\HydroDActivity1\\Analyses\\WadamAnalysis1\\WADAM1.lis"
 res_0_5 = WADAM_res(filename=mesh_0_5)
+
+start_slice = np.argwhere(res_0_5.Environment_data.wave_periods>=start_period)[0][0]
+end_slice = np.argwhere(res_0_5.Environment_data.wave_periods<=end_period)[-1][0]
 
 mesh_1 = mainfolder+"Mesh_1_m_linear\\Mesh_1_m_linear\\HydroDActivity1\Analyses\\WadamAnalysis1\\WADAM1.lis"
 res_1 = WADAM_res(filename=mesh_1)
@@ -55,10 +62,10 @@ for i in range(6):
 
         fig = plt.figure()
         ax = plt.axes()
-        ax.plot(p_0_5, a_0_5, label="0.5 m")
-        ax.plot(p_1, a_1, label="1.0 m")
-        ax.plot(p_2, a_2, label="2.0 m")
-        ax.plot(p_4, a_4, label="4.0 m")
+        ax.plot(p_0_5[start_slice:end_slice], a_0_5[start_slice:end_slice], label="0.5 m")
+        ax.plot(p_1[start_slice:end_slice], a_1[start_slice:end_slice], label="1.0 m")
+        ax.plot(p_2[start_slice:end_slice], a_2[start_slice:end_slice], label="2.0 m")
+        ax.plot(p_4[start_slice:end_slice], a_4[start_slice:end_slice], label="4.0 m")
         plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
         plt.title(f"Added mass - (i,j)=({i+1},{j+1})")
         plt.tight_layout()
@@ -72,10 +79,10 @@ for i in range(6):
 
         fig = plt.figure()
         ax = plt.axes()
-        ax.plot(p_0_5, b_0_5, label="0.5 m")
-        ax.plot(p_1, b_1, label="1.0 m")
-        ax.plot(p_2, b_2, label="2.0 m")
-        ax.plot(p_4, b_4, label="4.0 m")
+        ax.plot(p_0_5[start_slice:end_slice], b_0_5[start_slice:end_slice], label="0.5 m")
+        ax.plot(p_1[start_slice:end_slice], b_1[start_slice:end_slice], label="1.0 m")
+        ax.plot(p_2[start_slice:end_slice], b_2[start_slice:end_slice], label="2.0 m")
+        ax.plot(p_4[start_slice:end_slice], b_4[start_slice:end_slice], label="4.0 m")
         plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
         plt.title(f"Damping - (i,j)=({i + 1},{j + 1})")
         plt.tight_layout()
@@ -94,10 +101,10 @@ for j, h in enumerate(headings):
 
         fig = plt.figure()
         ax = plt.axes()
-        ax.plot(p_0_5, x_0_5, label="0.5 m")
-        ax.plot(p_1, x_1, label="1.0 m")
-        ax.plot(p_2, x_2, label="2.0 m")
-        ax.plot(p_4, x_4, label="4.0 m")
+        ax.plot(p_0_5[start_slice:end_slice], x_0_5[start_slice:end_slice], label="0.5 m")
+        ax.plot(p_1[start_slice:end_slice], x_1[start_slice:end_slice], label="1.0 m")
+        ax.plot(p_2[start_slice:end_slice], x_2[start_slice:end_slice], label="2.0 m")
+        ax.plot(p_4[start_slice:end_slice], x_4[start_slice:end_slice], label="4.0 m")
         plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
         plt.title(f"Motion RAO amplitude - i={i + 1}\nHeading: {h}"+r"$^{\circ}$ ")
         plt.tight_layout()
@@ -106,10 +113,10 @@ for j, h in enumerate(headings):
 
         fig = plt.figure()
         ax = plt.axes()
-        ax.plot(p_0_5, x_ph_0_5, label="0.5 m")
-        ax.plot(p_1, x_ph_1, label="1.0 m")
-        ax.plot(p_2, x_ph_2, label="2.0 m")
-        ax.plot(p_4, x_ph_4, label="4.0 m")
+        ax.plot(p_0_5[start_slice:end_slice], x_ph_0_5[start_slice:end_slice], label="0.5 m")
+        ax.plot(p_1[start_slice:end_slice], x_ph_1[start_slice:end_slice], label="1.0 m")
+        ax.plot(p_2[start_slice:end_slice], x_ph_2[start_slice:end_slice], label="2.0 m")
+        ax.plot(p_4[start_slice:end_slice], x_ph_4[start_slice:end_slice], label="4.0 m")
         plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
         plt.title(f"Motion RAO phase - i={i + 1}\nHeading: {h}"+r"$^{\circ}$ ")
         plt.tight_layout()
@@ -123,10 +130,10 @@ for j, h in enumerate(headings):
 
         fig = plt.figure()
         ax = plt.axes()
-        ax.plot(p_0_5, f_0_5, label="0.5 m")
-        ax.plot(p_1, f_1, label="1.0 m")
-        ax.plot(p_2, f_2, label="2.0 m")
-        ax.plot(p_4, f_4, label="4.0 m")
+        ax.plot(p_0_5[start_slice:end_slice], f_0_5[start_slice:end_slice], label="0.5 m")
+        ax.plot(p_1[start_slice:end_slice], f_1[start_slice:end_slice], label="1.0 m")
+        ax.plot(p_2[start_slice:end_slice], f_2[start_slice:end_slice], label="2.0 m")
+        ax.plot(p_4[start_slice:end_slice], f_4[start_slice:end_slice], label="4.0 m")
         plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
         plt.title(f"Load RAO amplitude - i={i + 1}\nHeading: {h}"+r"$^{\circ}$ ")
         plt.tight_layout()
@@ -135,10 +142,10 @@ for j, h in enumerate(headings):
 
         fig = plt.figure()
         ax = plt.axes()
-        ax.plot(p_0_5, x_ph_0_5, label="0.5 m")
-        ax.plot(p_1, f_ph_1, label="1.0 m")
-        ax.plot(p_2, f_ph_2, label="2.0 m")
-        ax.plot(p_4, f_ph_4, label="4.0 m")
+        ax.plot(p_0_5[start_slice:end_slice], x_ph_0_5[start_slice:end_slice], label="0.5 m")
+        ax.plot(p_1[start_slice:end_slice], f_ph_1[start_slice:end_slice], label="1.0 m")
+        ax.plot(p_2[start_slice:end_slice], f_ph_2[start_slice:end_slice], label="2.0 m")
+        ax.plot(p_4[start_slice:end_slice], f_ph_4[start_slice:end_slice], label="4.0 m")
         plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
         plt.title(f"Load RAO phase - i={i + 1}\nHeading: {h}"+r"$^{\circ}$ ")
         plt.tight_layout()

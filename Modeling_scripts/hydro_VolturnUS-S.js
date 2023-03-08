@@ -155,7 +155,7 @@ FEM_path = ""
 
 Mass_type = "Including_full_ballast";  // "Including_full_ballast" / "Including_fixed_ballast" / "Excluding_ballast"
 
-Drag_type = "Critical";  // "Critical" / "Morison"
+Drag_type = "Morison";  // "Critical" / "Morison"
 
 mean_drift = true;  // true / false
 
@@ -167,8 +167,8 @@ tank_method = "Quasi-static";  // "Dynamic" / "Quasi-static"
 
 anchor_formulation = "Point-mass"; // "Point-mass" / "Anchor-element"
 
-Hs = 10 m;
-Tp = 15 s;
+Hs = 3 m;
+Tp = 10 s;
 
 Directions1 = new Directions(Environment, "Directions1");
 DirectionSet1 = new DirectionSet(Directions1, "DirectionSet1");
@@ -247,20 +247,20 @@ Morison2DProperties = new Morison2DProperties(Properties, "Morison2DProperties")
 Col1 = new Morison2DProperty(Morison2DProperties, "Col1");
 Col1.Cdy = 1;
 Col1.Cdz = 1;
-Col1.Cay = 1;
-Col1.Caz = 1;
+Col1.Cay = 0;
+Col1.Caz = 0;
 
 Col2 = new Morison2DProperty(Morison2DProperties, "Col2");
 Col2.Cdy = 1;
 Col2.Cdz = 1;
-Col2.Cay = 1;
-Col2.Caz = 1;
+Col2.Cay = 0;
+Col2.Caz = 0;
 
 Pon = new Morison2DProperty(Morison2DProperties, "Pon");
-Pon.Cdy = 1;
-Pon.Cdz = 1;
-Pon.Cay = 1;
-Pon.Caz = 1;
+Pon.Cdy = 1.68;
+Pon.Cdz = 2.55;
+Pon.Cay = 0;
+Pon.Caz = 0;
 
 if (anchor_formulation == "Anchor-element"){
     AnchorProperties1 = new AnchorProperties(Properties, "AnchorProperties1");
