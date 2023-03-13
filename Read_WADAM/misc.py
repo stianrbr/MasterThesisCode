@@ -141,8 +141,12 @@ class WADAM_res:
                         self.Hull_damping = []
                         self.Total_pot_damping = []
 
-                    if "MOORING" in line:
+                    if "STATIC RESTORING COEFFICIENT MATRIX FOR TLP AND MOORING ELEMENTS" in line:
                         self.mooring_flag = True
+
+                    if "NUMBER OF BASIC PANELS         " in line:
+                        self.Num_panels = int(re.findall(regexp, line)[0])
+
                     if "MASS PROPERTIES AND STRUCTURAL DATA:" in line:
                         try:
                             section = self.datafile[i:i+20]
@@ -172,7 +176,7 @@ class WADAM_res:
                             xb = float(re.findall(regexp,[s for s in section if "CENTRE OF BUOYANCY                         XCB" in s][0])[0])
                             yb = float(re.findall(regexp,[s for s in section if "                                           YCB" in s][0])[0])
                             zb = float(re.findall(regexp,[s for s in section if "                                           ZCB" in s][0])[0])
-                            self.Hydro_static = Hydro_static(vol_disp, wp_area, t_moor_vertical, xb, yb, zb)
+                            self.Hydro_static = Hydro_static(vol_disp, t_moor_vertical, wp_area,  xb, yb, zb)
                         except:
                             raise Exception("Failed reading hydrostatic properties")
                     elif "2.8 ENVIRONMENTAL DATA:" in line:
@@ -535,6 +539,58 @@ class WADAM_res:
         else:
             warnings.warn("Tanks is None")
             return self.tanks
+
+    def get_QTF_load(self, i, heading1, heading2):
+        if len(self.diff_freq_load_QTF):
+            temp = self.diff_freq_load_QTF[heading1][heading2]
+            period_i = np.unique(np.array([qtf.period_i for qtf in temp]))
+            period_j = np.unique(np.array([qtf.period_j for qtf in temp]))
+            qtf = np.full((len(period_i), len(period_j)), np.nan)
+            for elem in temp:
+                ii = np.argwhere(period_i==elem.period_i)[0][0]
+                jj = np.argwhere(period_j ==elem.period_j)[0][0]
+                qtf[ii][jj] = elem.amplitude[i]
+            return qtf, period_i, period_j
+
+    def get_Mean_drift_full(self, i, heading):
+        if len(self.mean_drift_full):
+            temp = self.mean_drift_full[heading]
+            period = np.array([elem.period for elem in temp])
+            amp = np.array([elem.amplitude[i] for elem in temp])
+            return amp, period
+
+    def get_Mean_drift_horizontal(self, i, heading):
+        if len(self.mean_drift_horizontal):
+            if i in [0, 1, 5]:
+                if i==5: i=2
+                temp = self.mean_drift_horizontal[heading]
+                period = np.array([elem.period for elem in temp])
+                amp = np.array([elem.amplitude[i] for elem in temp])
+                return amp, period
+            else:
+                warnings.warn("Only horizontal dofs.")
+
+
+
+Addedmassunits = np.array([[r'kg',r'kg',r'kg',r'kg$\cdot$m',r'kg$\cdot$m',r'kg$\cdot$m'],
+                  [r'kg',r'kg',r'kg',r'kg$\cdot$m',r'kg$\cdot$m',r'kg$\cdot$m'],
+                  [r'kg',r'kg',r'kg',r'kg$\cdot$m',r'kg$\cdot$m',r'kg$\cdot$m'],
+                  [r'kg$\cdot$m',r'kg$\cdot$m',r'kg$\cdot$m',r'kg$\cdot m^2$',r'kg$\cdot m^2$',r'kg$\cdot m^2$'],
+                  [r'kg$\cdot$m',r'kg$\cdot$m',r'kg$\cdot$m',r'kg$\cdot m^2$',r'kg$\cdot m^2$',r'kg$\cdot m^2$'],
+                  [r'kg$\cdot$m',r'kg$\cdot$m',r'kg$\cdot$m',r'kg$\cdot m^2$',r'kg$\cdot m^2$',r'kg$\cdot m^2$']])
+
+Dampingunits = np.array([[r'$\frac{kg}{s}$',r'$\frac{kg}{s}$',r'$\frac{kg}{s}$',r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m}{s}$'],
+                  [r'$\frac{kg}{s}$',r'$\frac{kg}{s}$',r'$\frac{kg}{s}$',r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m}{s}$'],
+                  [r'$\frac{kg}{s}$',r'$\frac{kg}{s}$',r'$\frac{kg}{s}$',r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m}{s}$'],
+                  [r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m^2}{s}$',r'$\frac{kg\cdot m^2}{s}$',r'$\frac{kg\cdot m^2}{s}$'],
+                  [r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m^2}{s}$',r'$\frac{kg\cdot m^2}{s}$',r'$\frac{kg\cdot m^2}{s}$'],
+                  [r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m}{s}$',r'$\frac{kg\cdot m^2}{s}$',r'$\frac{kg\cdot m^2}{s}$',r'$\frac{kg\cdot m^2}{s}$']])
+
+Excitation_units = np.array([r'N/m', r'N/m', r'N/m', r'N $\cdot$ m/m', r'N $\cdot$ m/m', r'N $\cdot$ m/m'])
+
+Mean_drift_units = np.array([r'N/m$^2$', r'N/m$^2$', r'N/m$^2$', r'N $\cdot$ m/m$^2$', r'N $\cdot$ m/m$^2$', r'N $\cdot$ m/m$^2$'])
+
+motionRAO_units = np.array([r'm/m', r'm/m', r'm/m', r'deg/m', r'deg/m', r'deg/m'])
 
 
 
